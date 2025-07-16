@@ -46,14 +46,9 @@ if activity_name and selected_tags:
     if not phase_scores:
         st.warning("Phase inconnue, impossible de calculer les scores.")
     else:
-        # Calcul du score d'alignement moyen avec la phase actuelle
-        scores = [phase_scores.get(tag, 0.1) for tag in selected_tags]  # 0.1 si tag inconnu
+        scores = [phase_scores.get(tag, 0.1) for tag in selected_tags]
         alignement = sum(scores) / len(scores) if scores else 0
-
-        # Estimation du % de succès d’adoption : 
-        # on simule que tags très bien alignés avec la phase et quelques règles basiques
-        # Ici on fait simple : plus le score est élevé, meilleur le succès.
-        succes_adoption = alignement * 100  # en pourcentage
+        succes_adoption = alignement * 100
 
         st.markdown(f"### Résultats pour l'activité **{activity_name}** :")
         st.write(f"- **% de succès potentiel d’adoption** : {succes_adoption:.1f}%")
@@ -65,5 +60,19 @@ if activity_name and selected_tags:
             st.info("ℹ️ Cette activité a un potentiel moyen, à envisager avec prudence.")
         else:
             st.warning("⚠️ Cette activité risque de ne pas bien correspondre au moment actuel.")
+
+        # Nouvelle partie : identifier la phase idéale
+        max_score = 0
+        best_phase = None
+        for p in PHASES_ORDER:
+            scores_p = [PHASE_TAGS_MAP[p].get(tag, 0.1) for tag in selected_tags]
+            score_p = sum(scores_p) / len(scores_p) if scores_p else 0
+            if score_p > max_score:
+                max_score = score_p
+                best_phase = p
+
+        if best_phase and best_phase != phase:
+            st.markdown("---")
+            st.markdown(f"**Note : Cette activité/type d’activité serait parfaitement adaptée à la phase** : **{best_phase}** (avec un score idéal de 100%).")
 else:
     st.info("Entrez le nom de l’activité et sélectionnez les tags pour obtenir une estimation.")
